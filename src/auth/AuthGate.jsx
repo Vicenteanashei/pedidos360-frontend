@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { tokenRequest } from './authConfig';
 import { getAccessToken } from './token';
-import { setTokenProvider } from '../api/http';
 
 const message = (e) => (e instanceof Error ? e.message : String(e));
 
@@ -14,11 +13,6 @@ export function useSession() {
   const [error, setError] = useState('');
   const account = accounts[0];
 
-  useEffect(() => {
-    if (!account) return undefined;
-    setTokenProvider(() => getAccessToken(instance, account));
-    return () => setTokenProvider(async () => null);
-  }, [instance, account]);
 
   async function login() {
     setBusy(true);

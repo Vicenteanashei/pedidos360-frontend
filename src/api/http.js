@@ -1,7 +1,13 @@
+import { msalInstance } from '../auth/msalInstance';
+import { getAccessToken } from '../auth/token';
+
 export const API_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/$/, '');
 
-// MSAL registra aqui una funcion que entrega el access token vigente
-let tokenProvider = async () => null;
+// Por defecto toma el token de la cuenta con sesion iniciada en MSAL (asi la primera llamada ya lo lleva)
+let tokenProvider = async () => {
+  const account = msalInstance.getActiveAccount() ?? msalInstance.getAllAccounts()[0];
+  return account ? getAccessToken(msalInstance, account) : null;
+};
 
 export function setTokenProvider(provider) {
   tokenProvider = provider;

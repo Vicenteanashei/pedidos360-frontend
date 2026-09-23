@@ -1,15 +1,14 @@
 import { createRoot } from 'react-dom/client';
-import { PublicClientApplication } from '@azure/msal-browser';
+import { BrowserRouter } from 'react-router-dom';
 import { MsalProvider } from '@azure/msal-react';
-import { msalConfig } from './auth/authConfig';
+import { msalInstance } from './auth/msalInstance';
 import App from './App';
 import './styles.css';
 
-// MsalProvider se encarga de inicializar MSAL
-const msal = new PublicClientApplication(msalConfig);
-
 createRoot(document.getElementById('root')).render(
-  <MsalProvider instance={msal}>
-    <App />
+  <MsalProvider instance={msalInstance}>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </MsalProvider>,
 );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { decodeClaims } from '../auth/token';
-import { API_URL } from '../api/http';
+import { decodeClaims } from '../../auth/token';
+import { API_URL } from '../../api/http';
 
 // Mismos valores que validan el BFF y el API Gateway
 const TENANT_ID = import.meta.env.VITE_ENTRA_TENANT_ID || '9d7e1df5-4b2b-4f57-944c-0ea679424efd';
@@ -76,7 +76,7 @@ export function TokenSection({ session }) {
 
   return (
     <section className="section">
-      <h2>2. ¿El token viene bien?</h2>
+      <h2>¿El token viene bien?</h2>
       {body}
       <button className="btn" onClick={copy} disabled={!token}>
         {copied ? '¡Copiado! (no lo compartas)' : 'Copiar access token (para curl)'}
@@ -108,7 +108,7 @@ export function BackendTestSection({ session }) {
 
   return (
     <section className="section">
-      <h2>3. Probar contra el BFF</h2>
+      <h2>Probar contra el BFF</h2>
       <p className="muted small">URL del backend: <code>{API_URL}</code></p>
       <button className="btn" onClick={() => call(false)}>GET /api/orders sin token (esperado 401)</button>
       <button className="btn" onClick={() => call(true)} disabled={!session.account}>GET /api/orders con token (esperado 200)</button>

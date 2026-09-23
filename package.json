@@ -1,7 +1,7 @@
 {
-  "name": "frontend-pedidos360",
+  "name": "pedidos360-front",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
     "@azure/msal-browser": "^5.22.0",
     "@azure/msal-react": "^5.7.1",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.1",

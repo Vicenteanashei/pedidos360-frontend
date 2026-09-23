@@ -1,20 +1,34 @@
-import { useSession } from './auth/AuthGate';
-import LoginSection from './auth/LoginPage';
-import { BackendTestSection, TokenSection } from './components/SessionInfo';
-import ApiDataTest from './components/ApiDataTest';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import RequireAuth from './guards/RequireAuth';
+import Layout from './layout/Layout';
+import LoginComponent from './pages/LoginComponent';
+import AuthCallbackComponent from './pages/AuthCallbackComponent';
+import DashboardComponent from './pages/DashboardComponent';
+import OrdersComponent from './pages/OrdersComponent';
+import CatalogComponent from './pages/CatalogComponent';
+import ReportsComponent from './pages/ReportsComponent';
+import AuditComponent from './pages/AuditComponent';
+import SessionComponent from './pages/SessionComponent';
 
+// Rutas segun "Pantallas propuestas" del caso Pedidos360
 export default function App() {
-  const session = useSession();
-
   return (
-    <div className="page">
-      <h1>Pedidos360</h1>
-      <p className="sub">Inicia sesión con Microsoft Entra ID, revisa el token y pruébalo contra el BFF.</p>
+    <Routes>
+      {/* Publicas */}
+      <Route path="/login" element={<LoginComponent />} />
+      <Route path="/auth/callback" element={<AuthCallbackComponent />} />
 
-      <LoginSection session={session} />
-      <TokenSection session={session} />
-      <BackendTestSection session={session} />
-      <ApiDataTest session={session} />
-    </div>
+      {/* Protegidas: requieren sesion con Entra ID */}
+      <Route element={<RequireAuth><Layout /></RequireAuth>}>
+        <Route path="/dashboard" element={<DashboardComponent />} />
+        <Route path="/orders" element={<OrdersComponent />} />
+        <Route path="/catalog" element={<CatalogComponent />} />
+        <Route path="/reports" element={<ReportsComponent />} />
+        <Route path="/audit" element={<AuditComponent />} />
+        <Route path="/session" element={<SessionComponent />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 }
