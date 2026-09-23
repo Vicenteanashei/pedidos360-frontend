@@ -23,6 +23,8 @@ export default function OrderTokenTestComponent({ session }) {
   const [custom, setCustom] = useState('');
   const [result, setResult] = useState('—');
   const [running, setRunning] = useState(false);
+  const [myToken, setMyToken] = useState('');
+  const [tokenMsg, setTokenMsg] = useState('');
   const url = `${API_URL}/api/orders`;
 
   async function tokenFor(kind) {
@@ -67,12 +69,46 @@ export default function OrderTokenTestComponent({ session }) {
     }
   }
 
+  async function fetchToken() {
+    setTokenMsg('Obteniendo token…');
+    try {
+      const token = await session.getToken();
+      setMyToken(token);
+      const c = decodeClaims(token);
+      setTokenMsg(`Token de ${c.preferred_username ?? c.upn ?? '?'} · expira: ${new Date(c.exp * 1000).toLocaleString()}`);
+      return token;
+    } catch (e) {
+      setTokenMsg(`No se pudo obtener el token: ${e.message}`);
+      return null;
+    }
+  }
+
+  async function copyToken() {
+    const token = myToken || (await fetchToken());
+    if (!token) return;
+    try {
+      await navigator.clipboard.writeText(token);
+      setTokenMsg('¡Token copiado al portapapeles! No lo compartas.');
+    } catch {
+      setTokenMsg('No se pudo copiar automáticamente: selecciona el texto y cópialo a mano.');
+    }
+  }
+
   const noSession = !session.account;
 
   return (
     <section className="card">
       <h3>Probar tokens contra <code>GET /api/orders</code></h3>
       <p className="muted small">Backend: <code>{API_URL}</code></p>
+      <div>
+        <button className="btn" onClick={fetchToken} disabled={noSession}>Obtener mi token</button>{' '}
+        <button className="btn" onClick={copyToken} disabled={noSession}>Copiar token</button>{' '}
+        <button className="btn" onClick={() => setCustom(myToken)} disabled={!myToken}>Pegarlo abajo para probarlo</button>
+      </div>
+      {tokenMsg && <p className="muted small">{tokenMsg}</p>}
+      {myToken && (
+        <textarea className="token-input" rows={4} readOnly value={myToken} onFocus={(e) => e.target.select()} />
+      )}
       <div>
         <button className="btn" onClick={() => call('none')} disabled={running}>Sin token (esperado 401)</button>{' '}
         <button className="btn primary" onClick={() => call('valid')} disabled={running || noSession}>Token válido (esperado 200)</button>{' '}
