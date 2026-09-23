@@ -6,11 +6,12 @@ El backend (microservicios en Spring Boot) está en el repositorio **`pedidos360
 
 ## Qué muestra
 
-Es una sola página con tres secciones:
+Es una sola página con cuatro secciones:
 
 1. **Iniciar sesión**: botón para entrar con Microsoft y para cerrar sesión.
 2. **¿El token viene bien?**: comprueba el emisor, la audiencia y el scope del access token, y muestra sus datos (usuario, nombre, iss, aud, scp y expiración). Tiene un botón para copiar el token y probarlo con `curl`.
 3. **Probar contra el BFF**: llama a `/api/orders` sin token (esperado **401**) y con token (esperado **200**) y muestra la respuesta.
+4. **Prueba 2: solicitud con token válido**: llama a `GET /api/data` del BFF con el token (esperado **200** y el mensaje *Acceso autorizado a Spring Boot*). También explica cómo hacer la misma prueba desde PowerShell o la terminal de Linux.
 
 ## Cómo levantarlo
 
@@ -48,6 +49,7 @@ src/
   auth/LoginPage.jsx       Sección 1: iniciar y cerrar sesión
   auth/token.js            Obtener el access token y leer sus datos
   components/SessionInfo.jsx  Secciones 2 y 3: revisar el token y probarlo contra el BFF
+  components/ApiDataTest.jsx  Sección 4: prueba con token válido contra GET /api/data
   api/http.js              URL del backend y llamadas con el token
 redirect.html              Página a la que vuelve el popup de login de Microsoft
 ```

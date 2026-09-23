@@ -1,6 +1,7 @@
 import { useSession } from './auth/AuthGate';
 import LoginSection from './auth/LoginPage';
 import { BackendTestSection, TokenSection } from './components/SessionInfo';
+import ApiDataTest from './components/ApiDataTest';
 
 export default function App() {
   const session = useSession();
@@ -13,6 +14,7 @@ export default function App() {
       <LoginSection session={session} />
       <TokenSection session={session} />
       <BackendTestSection session={session} />
+      <ApiDataTest session={session} />
     </div>
   );
 }

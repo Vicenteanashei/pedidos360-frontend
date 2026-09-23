@@ -127,3 +127,15 @@ legend { font-size: .85rem; color: var(--muted); padding: 0 .3rem; }
 @media (max-width: 760px) {
   .split, .row { grid-template-columns: 1fr; }
 }
+
+/* Seccion 4: prueba de /api/data */
+.mt { margin-top: 1.2rem; }
+h4 { font-size: .95rem; margin: .9rem 0 .3rem; }
+ol.steps { margin: .2rem 0; padding-left: 1.3rem; font-size: .92rem; }
+ol.steps li { margin-bottom: .6rem; }
+.code-block { position: relative; margin: .35rem 0; }
+.code-block pre { background: #1f2937; color: #e5e7eb; padding: .7rem 5rem .7rem .8rem; border-radius: 6px; overflow-x: auto;
+  font-size: .85rem; margin: 0; white-space: pre; }
+.code-block .btn { position: absolute; top: .35rem; right: .35rem; margin: 0; }
+.note { background: #fff8e1; border: 1px solid #f3d27a; border-radius: 6px; padding: .7rem .9rem; font-size: .88rem; margin-top: .6rem; }
+.warn.small { margin: .3rem 0; }
