@@ -32,7 +32,14 @@ export function useSession() {
     busy: busy || inProgress !== InteractionStatus.None,
     error,
     login,
-    logout: () => instance.logoutPopup({ account }),
+    // El popup tiene que volver a redirect.html (el puente) para avisar a la ventana principal; si vuelve a la app,
+    // MSAL se queda esperando y hay que cerrar el popup y pulsar de nuevo. logoutHint evita el selector de cuenta.
+    logout: () => instance.logoutPopup({
+      account,
+      logoutHint: account?.idTokenClaims?.login_hint,
+      postLogoutRedirectUri: `${window.location.origin}/redirect.html`,
+      mainWindowRedirectUri: '/login',
+    }),
     getToken: () => getAccessToken(instance, account),
   };
 }

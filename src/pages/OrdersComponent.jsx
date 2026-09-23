@@ -5,6 +5,7 @@ import { useSession } from '../auth/AuthGate';
 import OrderListComponent from '../components/orders/OrderListComponent';
 import OrderDetailComponent from '../components/orders/OrderDetailComponent';
 import OrderFormComponent from '../components/orders/OrderFormComponent';
+import OrderTokenTestComponent from '../components/orders/OrderTokenTestComponent';
 
 // Ruta /orders: gestion de pedidos (listar, crear, ver/editar y cambiar estado)
 export default function OrdersComponent() {
@@ -13,6 +14,7 @@ export default function OrdersComponent() {
   const [filters, setFilters] = useState({ status: '', from: '', to: '' });
   const { orders, loading, error, reload } = useOrders(filters);
   // panel: { mode: 'detail', id } | { mode: 'new' } | { mode: 'edit', order } | null
+  const [showTokenTest, setShowTokenTest] = useState(false);
   const [panel, setPanel] = useState(() => (location.state?.open ? { mode: 'detail', id: location.state.open } : null));
 
   async function afterSave(order) {
@@ -24,8 +26,14 @@ export default function OrdersComponent() {
     <div>
       <div className="page-head">
         <h2>Pedidos</h2>
-        <button className="btn primary" onClick={() => setPanel({ mode: 'new' })}>+ Nuevo pedido</button>
+        <div>
+          <button className="btn" onClick={() => setShowTokenTest((v) => !v)}>
+            {showTokenTest ? 'Ocultar prueba de tokens' : 'Probar tokens'}
+          </button>{' '}
+          <button className="btn primary" onClick={() => setPanel({ mode: 'new' })}>+ Nuevo pedido</button>
+        </div>
       </div>
+      {showTokenTest && <OrderTokenTestComponent session={session} />}
       {error && <p className="error">{error}</p>}
 
       <div className="split">
