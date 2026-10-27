@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
-import { tokenRequest } from './authConfig';
+import { identityConfigured, tokenRequest } from './authConfig';
 import { getAccessToken } from './token';
 
 const message = (e) => (e instanceof Error ? e.message : String(e));
@@ -15,10 +15,11 @@ export function useSession() {
 
 
   async function login() {
+    if (!identityConfigured) { setError("El acceso con Microsoft está pendiente de configuración."); return; }
     setBusy(true);
     setError('');
     try {
-      await instance.loginPopup({ ...tokenRequest, prompt: 'select_account' });
+      await instance.loginRedirect({ ...tokenRequest, prompt: 'select_account' });
     } catch (e) {
       setError(message(e));
     } finally {
@@ -32,13 +33,11 @@ export function useSession() {
     busy: busy || inProgress !== InteractionStatus.None,
     error,
     login,
-    // El popup tiene que volver a redirect.html (el puente) para avisar a la ventana principal; si vuelve a la app,
-    // MSAL se queda esperando y hay que cerrar el popup y pulsar de nuevo. logoutHint evita el selector de cuenta.
-    logout: () => instance.logoutPopup({
+    // Los flujos interactivos usan la pestaña completa; el puente devuelve a la app.
+    logout: () => instance.logoutRedirect({
       account,
       logoutHint: account?.idTokenClaims?.login_hint,
       postLogoutRedirectUri: `${window.location.origin}/redirect.html`,
-      mainWindowRedirectUri: '/login',
     }),
     getToken: () => getAccessToken(instance, account),
   };

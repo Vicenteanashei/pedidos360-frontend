@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 // Puerto fijo: tiene que coincidir con las Redirect URI del registro de la SPA en Entra ID
 // y con CORS_ALLOWED_ORIGINS del BFF.
-// Multipágina: redirect.html (el puente del popup de MSAL) también tiene que quedar en el build.
+// Multipágina: redirect.html (el puente de MSAL) también tiene que quedar en el build.
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173, strictPort: true },

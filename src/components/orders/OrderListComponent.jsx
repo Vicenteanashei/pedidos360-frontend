@@ -5,7 +5,7 @@ import OrderStatusBadgeComponent from './OrderStatusBadgeComponent';
 
 // Tabla de pedidos filtrable por estado y rango de fechas
 export default function OrderListComponent({ orders, loading, filters, onFilters, onSelect, selectedId, onReload }) {
-  const set = (key) => (e) => onFilters({ ...filters, [key]: e.target.value });
+  const set = (key) => (e) => onFilters({ ...filters, [key]: e.target.value,page:0 });
   return (
     <div>
       <div className="filters">
@@ -17,7 +17,7 @@ export default function OrderListComponent({ orders, loading, filters, onFilters
         </label>
         <label>Desde <input type="date" value={filters.from} onChange={set('from')} /></label>
         <label>Hasta <input type="date" value={filters.to} onChange={set('to')} /></label>
-        <button className="btn" onClick={() => onFilters({ status: '', from: '', to: '' })}>Limpiar</button>
+        <button className="btn" onClick={() => onFilters({ status: '', from: '', to: '',page:0,size:50 })}>Limpiar</button>
         <button className="btn" onClick={onReload}>↻ Actualizar</button>
       </div>
 
@@ -44,6 +44,7 @@ export default function OrderListComponent({ orders, loading, filters, onFilters
           </table>
         </div>
       )}
+      <div className="actions"><button className="btn" disabled={loading||!(filters.page||0)} onClick={()=>onFilters({...filters,page:(filters.page||0)-1})}>Anterior</button><span>Página {(filters.page||0)+1}</span><button className="btn" disabled={loading||orders.length<(filters.size||100)} onClick={()=>onFilters({...filters,page:(filters.page||0)+1})}>Siguiente</button></div>
     </div>
   );
 }

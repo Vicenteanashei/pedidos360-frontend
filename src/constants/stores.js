@@ -1,8 +1,7 @@
-// Locales de la red (provisional, hasta que exista un maestro de locales)
-export const STORES = [
-  { id: 1, name: 'Panadería La Espiga' },
-  { id: 2, name: 'Café del Barrio' },
-  { id: 3, name: 'Pastelería Dulce Hogar' },
-];
-
-export const storeName = (id) => STORES.find((s) => s.id === id)?.name ?? `Local #${id}`;
+// The case includes twenty stores. Keep existing demo names and expose the full range.
+const names = ['Panadería La Espiga', 'Café del Barrio', 'Pastelería Dulce Hogar'];
+export const STORES = Array.from({length: 20}, (_, index) => ({
+  id: index + 1,
+  name: names[index] || `Local #${index + 1}`,
+}));
+export const storeName = (id) => STORES.find((s) => s.id === Number(id))?.name ?? `Local #${id}`;

@@ -9,7 +9,7 @@ export default function ProductCardComponent({ product, onEdit }) {
       <div className="product-name">{product.name}</div>
       <div className="product-price">{money(product.price)}</div>
       <div className={low ? 'stock low' : 'stock'}>{low ? '⚠ ' : ''}Stock: <b>{product.stock}</b></div>
-      <button className="btn small" onClick={() => onEdit(product)}>Editar</button>
+      {onEdit && <button className="btn small" onClick={() => onEdit(product)}>Editar</button>}
     </div>
   );
 }

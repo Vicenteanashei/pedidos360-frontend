@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { changeStatus, deleteOrder, getOrder } from '../../api/ordersApi';
-import { discountStock, productName } from '../../api/catalogStore';
+import { productName } from '../../api/catalogStore';
+import {usePermissions} from '../../auth/Permissions';
 import { ACTION_LABEL, TRANSITIONS } from '../../constants/orderStatus';
 import { storeName } from '../../constants/stores';
 import { date, duration, money } from '../../utils/format';
@@ -8,6 +9,7 @@ import OrderStatusBadgeComponent from './OrderStatusBadgeComponent';
 
 // Ver un pedido: datos, productos, linea de tiempo y acciones (cambiar estado, editar, eliminar)
 export default function OrderDetailComponent({ id, onEdit, onChanged, onDeleted }) {
+  const permissions=usePermissions();
   const [order, setOrder] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -32,7 +34,6 @@ export default function OrderDetailComponent({ id, onEdit, onChanged, onDeleted 
 
   const move = (status) => run(async () => {
     const updated = await changeStatus(id, status);
-    if (status === 'ACEPTADO') discountStock(updated.items); // regla: el stock decrece al aceptar
     setOrder(updated);
     await onChanged();
   });
@@ -43,7 +44,7 @@ export default function OrderDetailComponent({ id, onEdit, onChanged, onDeleted 
   });
 
   if (!order) return error ? <p className="error">{error}</p> : <p className="muted">Cargando…</p>;
-  const next = TRANSITIONS[order.status] ?? [];
+  const next=(TRANSITIONS[order.status]??[]).filter(s=>permissions.has('Admin','Operador')||s==='CANCELADO'&&order.status==='CREADO').filter(s=>s!=='CANCELADO'||['CREADO','ACEPTADO'].includes(order.status));
 
   return (
     <div className="detail">
@@ -88,14 +89,14 @@ export default function OrderDetailComponent({ id, onEdit, onChanged, onDeleted 
           </button>
         ))}
         {order.status === 'CREADO' && <button className="btn" disabled={busy} onClick={() => onEdit(order)}>Editar</button>}
-        {confirmDelete ? (
+        {permissions.has('Admin') && order.status==='CREADO' && (confirmDelete ? (
           <>
             <button className="btn danger" disabled={busy} onClick={remove}>Sí, eliminar</button>
             <button className="btn" onClick={() => setConfirmDelete(false)}>No</button>
           </>
         ) : (
           <button className="btn danger-ghost" disabled={busy} onClick={() => setConfirmDelete(true)}>Eliminar</button>
-        )}
+        ))}
       </div>
     </div>
   );

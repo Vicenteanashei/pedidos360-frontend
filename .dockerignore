@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.env
+.env.*
+data
+manual-results
+*.log
+*.pem
+*.key
+*.pfx
+*.p12

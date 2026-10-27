@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { API_URL } from '../../api/http';
 import { decodeClaims } from '../../auth/token';
 
-// Cambia el ultimo caracter de la firma: el token sigue bien formado pero la firma ya no es valida
+// Change actual signature bytes; modifying padding bits can leave the signature unchanged.
 function tamper(jwt) {
-  const last = jwt.slice(-1);
-  return jwt.slice(0, -1) + (last === 'A' ? 'B' : 'A');
+ const parts=jwt.split('.');if(parts.length!==3)throw new Error('JWT mal formado');
+ const raw=parts[2].replace(/-/g,'+').replace(/_/g,'/');const bytes=Uint8Array.from(atob(raw.padEnd(Math.ceil(raw.length/4)*4,'=')),c=>c.charCodeAt(0));bytes[0]^=1;
+ parts[2]=btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return parts.join('.');
 }
 
 const EXPECTED = { none: 401, valid: 200, tampered: 401, garbage: 401 };
@@ -47,7 +48,7 @@ export default function OrderTokenTestComponent({ session }) {
       const expected = EXPECTED[kind];
       let note = '';
       if (expected) note = res.status === expected ? '✔ Resultado esperado.' : `✘ Se esperaba HTTP ${expected}.`;
-      if (res.status === 403) note += ' 403: el token no trae el scope access_as_user.';
+      if (res.status === 403) note += ' 403: el token no tiene scope o rol autorizado.';
 
       let info = '';
       if (token && kind !== 'garbage') {

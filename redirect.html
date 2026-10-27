@@ -2,7 +2,7 @@
 <html lang="es">
 <head><meta charset="UTF-8" /><title>Pedidos360</title></head>
 <body>
-  <!-- Puente del popup de MSAL: devuelve la respuesta de Entra ID a la ventana principal -->
+  <!-- Puente de MSAL: procesa el regreso de Entra ID y devuelve a la aplicación -->
   <script type="module">
     import { broadcastResponseToMainFrame } from '@azure/msal-browser/redirect-bridge';
     broadcastResponseToMainFrame().catch(console.error);

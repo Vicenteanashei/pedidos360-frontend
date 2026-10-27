@@ -15,7 +15,7 @@ export function setTokenProvider(provider) {
 
 const STATUS_MESSAGES = {
   401: 'Tu sesión no es válida o expiró. Cierra sesión y vuelve a entrar.',
-  403: 'El token no tiene permiso para usar la API (falta el scope access_as_user).',
+  403: 'El token no tiene permiso para usar la API (falta scope o rol autorizado).',
 };
 
 export async function request(path, { method = 'GET', body } = {}) {
@@ -31,6 +31,7 @@ export async function request(path, { method = 'GET', body } = {}) {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(15000),
     });
   } catch {
     throw new Error(`No se pudo conectar con el backend (${API_URL}). ¿Está levantado?`);
