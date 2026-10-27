@@ -11,7 +11,7 @@ import OrderTokenTestComponent from '../components/orders/OrderTokenTestComponen
 export default function OrdersComponent() {
   const session = useSession();
   const location = useLocation();
-  const [filters, setFilters] = useState({ status: '', from: '', to: '' });
+  const [filters, setFilters] = useState({ status: '', from: '', to: '',page:0,size:50 });
   const { orders, loading, error, reload } = useOrders(filters);
   // panel: { mode: 'detail', id } | { mode: 'new' } | { mode: 'edit', order } | null
   const [showTokenTest, setShowTokenTest] = useState(false);
@@ -27,9 +27,9 @@ export default function OrdersComponent() {
       <div className="page-head">
         <h2>Pedidos</h2>
         <div>
-          <button className="btn" onClick={() => setShowTokenTest((v) => !v)}>
+          {import.meta.env.VITE_DIAGNOSTICS==='true' && <button className="btn" onClick={() => setShowTokenTest((v) => !v)}>
             {showTokenTest ? 'Ocultar prueba de tokens' : 'Probar tokens'}
-          </button>{' '}
+          </button>}{' '}
           <button className="btn primary" onClick={() => setPanel({ mode: 'new' })}>+ Nuevo pedido</button>
         </div>
       </div>
@@ -57,7 +57,7 @@ export default function OrdersComponent() {
             <OrderFormComponent defaultEmail={session.username} onSaved={afterSave} onCancel={() => setPanel(null)} />
           )}
           {panel?.mode === 'edit' && (
-            <OrderFormComponent order={panel.order} onSaved={afterSave} onCancel={() => setPanel({ mode: 'detail', id: panel.order.id })} />
+            <OrderFormComponent key={panel.order.id} order={panel.order} onSaved={afterSave} onCancel={() => setPanel({ mode: 'detail', id: panel.order.id })} />
           )}
         </section>
       </div>

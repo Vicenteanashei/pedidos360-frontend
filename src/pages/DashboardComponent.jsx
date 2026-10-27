@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../hooks/useOrders';
 import { useSession } from '../auth/AuthGate';
 import { changeStatus } from '../api/ordersApi';
-import { discountStock } from '../api/catalogStore';
+import {usePermissions} from '../auth/Permissions';
 import { ACTIVE_STATUSES } from '../constants/orderStatus';
 import { storeName } from '../constants/stores';
 import { date, formatDuration, money } from '../utils/format';
@@ -22,6 +22,7 @@ function Kpi({ label, value, hint }) {
 // Ruta /dashboard: vista inicial tras el login con el resumen de actividad
 export default function DashboardComponent() {
   const session = useSession();
+  const permissions=usePermissions();
   const navigate = useNavigate();
   const { orders, loading, error, reload } = useOrders();
   const [busyId, setBusyId] = useState(null);
@@ -40,7 +41,7 @@ export default function DashboardComponent() {
     setActionError('');
     try {
       const updated = await changeStatus(order.id, 'ACEPTADO');
-      discountStock(updated.items);
+
       await reload();
     } catch (e) {
       setActionError(e.message);
@@ -52,15 +53,15 @@ export default function DashboardComponent() {
   return (
     <div>
       <h2>Hola{session.username ? `, ${session.username.split('@')[0]}` : ''} 👋</h2>
-      <p className="muted">Resumen de actividad de la red de locales.</p>
+      <p className="muted">Resumen de los últimos 100 pedidos visibles para tu rol.</p>
       {loading && <p className="muted">Cargando…</p>}
       {error && <p className="error">{error}</p>}
       {!loading && !error && (
         <>
           <div className="kpis">
-            <Kpi label="Pedidos totales" value={orders.length} />
+            <Kpi label="Pedidos en esta vista" value={orders.length} />
             <Kpi label="En curso" value={active.length} />
-            <Kpi label="Ventas entregadas" value={money(sales)} />
+            <Kpi label="Ventas entregadas en esta vista" value={money(sales)} />
             <Kpi label="Lead time promedio" value={avgLead} hint="desde que se crea hasta que se entrega" />
           </div>
 
@@ -76,7 +77,7 @@ export default function DashboardComponent() {
                       <tr key={o.id}>
                         <td>#{o.id}</td><td>{o.customerName}</td><td>{money(o.total)}</td>
                         <td className="right">
-                          <button className="btn small primary" disabled={busyId === o.id} onClick={() => accept(o)}>Aceptar</button>
+                          <button className="btn small primary" disabled={busyId === o.id || !permissions.has('Admin','Operador')} onClick={() => accept(o)}>Aceptar</button>
                         </td>
                       </tr>
                     ))}

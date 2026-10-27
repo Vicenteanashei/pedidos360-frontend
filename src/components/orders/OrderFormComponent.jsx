@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createOrder, updateOrder } from '../../api/ordersApi';
 import { useCatalog } from '../../hooks/useCatalog';
 import { STORES } from '../../constants/stores';
@@ -6,7 +6,8 @@ import { money } from '../../utils/format';
 
 // Crear o editar un pedido (editar solo mientras esta CREADO)
 export default function OrderFormComponent({ order, defaultEmail, defaultName, onSaved, onCancel }) {
-  const products = useCatalog();
+  const [catalogStore,setCatalogStore]=useState(order?.storeId ?? STORES[0].id);
+  const {products,error:catalogError,loading:catalogLoading}=useCatalog(catalogStore);
   const editing = Boolean(order);
   const emptyItem = () => ({ productId: products[0]?.id ?? '', quantity: 1 });
   const [form, setForm] = useState(() => ({
@@ -17,6 +18,7 @@ export default function OrderFormComponent({ order, defaultEmail, defaultName, o
     notes: order?.notes ?? '',
     items: order?.items?.map((i) => ({ productId: i.productId, quantity: i.quantity })) ?? [emptyItem()],
   }));
+  useEffect(()=>{if(products.length)setForm(f=>({...f,items:f.items.map(i=>products.some(p=>p.id===Number(i.productId))?i:{...i,productId:products[0].id})}));},[products]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -47,7 +49,7 @@ export default function OrderFormComponent({ order, defaultEmail, defaultName, o
     <form className="order-form" onSubmit={submit}>
       <h3>{editing ? `Editar pedido #${order.id}` : 'Nuevo pedido'}</h3>
       <label>Local
-        <select value={form.storeId} onChange={set('storeId')}>
+        <select value={form.storeId} onChange={e=>{setCatalogStore(Number(e.target.value));set('storeId')(e);}}>
           {STORES.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </label>
@@ -76,9 +78,9 @@ export default function OrderFormComponent({ order, defaultEmail, defaultName, o
       </fieldset>
 
       <div className="total">Total: <b>{money(total)}</b></div>
-      {error && <p className="error">{error}</p>}
+      {(error||catalogError) && <p className="error">{error||catalogError}</p>}
       <div className="actions">
-        <button className="btn primary" disabled={busy}>{busy ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear pedido'}</button>
+        <button className="btn primary" disabled={busy||catalogLoading||!products.length||Boolean(catalogError)}>{busy ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear pedido'}</button>
         <button type="button" className="btn" onClick={onCancel}>Cancelar</button>
       </div>
     </form>

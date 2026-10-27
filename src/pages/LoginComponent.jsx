@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import {usePermissions} from '../auth/Permissions';
 import { useSession } from '../auth/AuthGate';
 
 function MicrosoftLogo() {
@@ -15,8 +16,10 @@ function MicrosoftLogo() {
 // Ruta /login (publica): inicia sesion con Azure AD / Entra ID mediante MSAL
 export default function LoginComponent() {
   const session = useSession();
+  const permissions=usePermissions();
   const location = useLocation();
-  if (session.account) return <Navigate to={location.state?.from || '/dashboard'} replace />;
+  if (session.account && permissions.loading) return <p>Comprobando sesión…</p>;
+  if (session.account) return <Navigate to={location.state?.from || (permissions.has('Auditor')&&!permissions.has('Admin')?'/audit':'/dashboard')} replace />;
 
   return (
     <div className="login-screen">
@@ -28,7 +31,7 @@ export default function LoginComponent() {
           {session.busy ? 'Conectando…' : 'Iniciar sesión con Microsoft'}
         </button>
         {session.error && <p className="error">Error: {session.error}</p>}
-        <p className="muted small">Se abrirá una ventana de Microsoft. Al terminar vuelves automáticamente a la aplicación.</p>
+        <p className="muted small">Microsoft se abrirá en esta pestaña. Al terminar vuelves automáticamente a la aplicación.</p>
       </div>
     </div>
   );

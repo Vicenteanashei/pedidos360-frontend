@@ -1,44 +1,5 @@
-import { useState } from 'react';
-import { useCatalog } from '../hooks/useCatalog';
-import { resetCatalog, saveProduct } from '../api/catalogStore';
-import ProductCardComponent from '../components/catalog/ProductCardComponent';
-import ProductFormComponent from '../components/catalog/ProductFormComponent';
-
-// Ruta /catalog: productos, precios y control de stock
-export default function CatalogComponent() {
-  const products = useCatalog();
-  const [editing, setEditing] = useState(null); // null | 'new' | producto
-  const [search, setSearch] = useState('');
-  const visible = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-
-  function save(product) {
-    saveProduct(product);
-    setEditing(null);
-  }
-
-  return (
-    <div>
-      <div className="page-head">
-        <h2>Catálogo de productos</h2>
-        <button className="btn primary" onClick={() => setEditing('new')}>+ Nuevo producto</button>
-      </div>
-      <p className="note small">
-        Catálogo provisional guardado en el navegador mientras se construye <code>ms-pedidos360-catalog</code>.
-        El stock baja automáticamente cuando se <b>acepta</b> un pedido.
-      </p>
-
-      {editing && (
-        <ProductFormComponent product={editing === 'new' ? null : editing} onSave={save} onCancel={() => setEditing(null)} />
-      )}
-
-      <div className="filters">
-        <label>Buscar<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Nombre del producto" /></label>
-        <button className="btn" onClick={resetCatalog}>Restaurar catálogo inicial</button>
-      </div>
-
-      <div className="product-grid">
-        {visible.map((p) => <ProductCardComponent key={p.id} product={p} onEdit={setEditing} />)}
-      </div>
-    </div>
-  );
+import {useState} from 'react';import {useCatalog} from '../hooks/useCatalog';import {saveProduct,deactivateProduct} from '../api/catalogStore';import {usePermissions} from '../auth/Permissions';import {STORES} from '../constants/stores';import ProductCardComponent from '../components/catalog/ProductCardComponent';import ProductFormComponent from '../components/catalog/ProductFormComponent';
+export default function CatalogComponent(){const [storeId,setStore]=useState(1);const {products,loading,error,reload}=useCatalog(storeId);const [editing,setEditing]=useState(null);const [actionError,setError]=useState('');const [search,setSearch]=useState('');const p=usePermissions();
+ async function save(product){try{setError('');await saveProduct({...product,storeId:Number(storeId)});setEditing(null);}catch(e){setError(e.message);}}
+ return <div><div className="page-head"><h2>Catálogo</h2>{p.has('Admin')&&<button className="btn primary" onClick={()=>setEditing('new')}>Nuevo producto</button>}</div><div className="filters"><label>Local<select value={storeId} onChange={e=>{setStore(Number(e.target.value));setEditing(null);}}>{STORES.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label><label>Buscar<input value={search} onChange={e=>setSearch(e.target.value)}/></label><button className="btn" onClick={reload}>Actualizar</button></div>{(error||actionError)&&<p className="error">{error||actionError}</p>}{loading&&<p>Cargando…</p>}{editing&&<ProductFormComponent key={editing.id||'new'} product={editing==='new'?null:editing} onSave={save} onCancel={()=>setEditing(null)}/>}<div className="product-grid">{products.filter(p=>p.name.toLowerCase().includes(search.toLowerCase())).map(product=><div key={product.id}><ProductCardComponent product={product} onEdit={p.has('Admin')?setEditing:null}/>{p.has('Admin')&&<button className="btn" onClick={async()=>{try{await deactivateProduct(product);}catch(e){setError(e.message);}}}>Desactivar</button>}</div>)}</div></div>;
 }

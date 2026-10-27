@@ -1,0 +1,13 @@
+services:
+  frontend:
+    build:
+      context: ../..
+      args:
+        VITE_ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:?Configure tenant}
+        VITE_SPA_CLIENT_ID: ${SPA_CLIENT_ID:?Configure SPA}
+        VITE_API_CLIENT_ID: ${API_CLIENT_ID:?Configure API}
+        VITE_DIAGNOSTICS: ${VITE_DIAGNOSTICS:-false}
+        VITE_API_BASE_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+    ports:
+      - "${FRONTEND_BIND_ADDRESS:-127.0.0.1}:${FRONTEND_PORT:-5173}:80"
+    restart: unless-stopped

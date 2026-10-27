@@ -3,8 +3,8 @@ import { decodeClaims } from '../../auth/token';
 import { API_URL } from '../../api/http';
 
 // Mismos valores que validan el BFF y el API Gateway
-const TENANT_ID = import.meta.env.VITE_ENTRA_TENANT_ID || '9d7e1df5-4b2b-4f57-944c-0ea679424efd';
-const API_CLIENT_ID = import.meta.env.VITE_API_CLIENT_ID || '88e22461-0dce-4446-8509-c6eec7da2c02';
+const TENANT_ID = import.meta.env.VITE_ENTRA_TENANT_ID;
+const API_CLIENT_ID = import.meta.env.VITE_API_CLIENT_ID;
 const EXPECTED_ISS = `https://login.microsoftonline.com/${TENANT_ID}/v2.0`;
 
 function Check({ ok, level = 'bad', children }) {
@@ -53,8 +53,8 @@ export function TokenSection({ session }) {
             {c.iss === EXPECTED_ISS ? 'Emisor correcto (token v2).'
               : `Emisor inesperado: ${c.iss}. Si empieza con sts.windows.net, pon requestedAccessTokenVersion: 2 en el manifest de la API.`}
           </Check>
-          <Check ok={c.aud === API_CLIENT_ID || c.aud === `api://${API_CLIENT_ID}`}>
-            {c.aud === API_CLIENT_ID || c.aud === `api://${API_CLIENT_ID}` ? `Audiencia = la API (${c.aud}).` : `Audiencia inesperada: ${c.aud}.`}
+          <Check ok={c.aud === API_CLIENT_ID}>
+            {c.aud === API_CLIENT_ID ? `Audiencia = la API (${c.aud}).` : `Audiencia inesperada: ${c.aud}.`}
           </Check>
           <Check ok={scopes.includes('access_as_user')}>
             {scopes.includes('access_as_user') ? 'Trae el scope access_as_user.' : 'No trae el scope access_as_user.'}
@@ -78,9 +78,9 @@ export function TokenSection({ session }) {
     <section className="section">
       <h2>¿El token viene bien?</h2>
       {body}
-      <button className="btn" onClick={copy} disabled={!token}>
+      {import.meta.env.VITE_DIAGNOSTICS==='true' && <button className="btn" onClick={copy} disabled={!token}>
         {copied ? '¡Copiado! (no lo compartas)' : 'Copiar access token (para curl)'}
-      </button>
+      </button>}
     </section>
   );
 }
@@ -90,7 +90,7 @@ export function BackendTestSection({ session }) {
   const [result, setResult] = useState('—');
 
   async function call(withToken) {
-    const url = `${API_URL}/api/orders`;
+    const url = `${API_URL}/api/data`;
     setResult(`Llamando a ${url} …`);
     try {
       const headers = withToken ? { Authorization: `Bearer ${await session.getToken()}` } : {};
@@ -110,8 +110,8 @@ export function BackendTestSection({ session }) {
     <section className="section">
       <h2>Probar contra el BFF</h2>
       <p className="muted small">URL del backend: <code>{API_URL}</code></p>
-      <button className="btn" onClick={() => call(false)}>GET /api/orders sin token (esperado 401)</button>
-      <button className="btn" onClick={() => call(true)} disabled={!session.account}>GET /api/orders con token (esperado 200)</button>
+      <button className="btn" onClick={() => call(false)}>GET /api/data sin token (esperado 401)</button>
+      <button className="btn" onClick={() => call(true)} disabled={!session.account}>GET /api/data con token (esperado 200)</button>
       <pre className="result">{result}</pre>
     </section>
   );
