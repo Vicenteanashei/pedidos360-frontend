@@ -19,6 +19,8 @@ Registrar en Entra el redirect /redirect.html del origen utilizado. Fuera de loc
 
 ## Compilar y desplegar
 
+EA3 agrega la pantalla Kafka para Admin y actualiza Reportes/Auditoría desde sus servicios de proyección cada 15 segundos. El backend requiere los nuevos servicios y la infraestructura descrita en su documentación EA3. Las vistas muestran datos eventualmente consistentes; la llegada de un pedido a la API puede preceder su aparición en reportes.
+
 ```bash
 npm run build
 ```

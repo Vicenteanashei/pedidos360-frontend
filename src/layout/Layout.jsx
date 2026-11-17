@@ -9,6 +9,7 @@ const MENU = [
   { to: '/reports', label: 'Reportes', icon: '📊' },
   { to: '/audit', label: 'Auditoría', icon: '🕓' },
   {to:'/rabbit',label:'RabbitMQ',icon:'🐇'},
+  {to:'/kafka',label:'Kafka',icon:'📨'},
   {to:'/notifications',label:'Notificaciones',icon:'✉️'},
   { to: '/session', label: 'Mi sesión', icon: '🔑' },
 ];
@@ -17,7 +18,7 @@ const MENU = [
 export default function Layout() {
   const session = useSession();
   const p=usePermissions();
-  const allowed={dashboard:['Admin','Operador','Cliente'],orders:['Admin','Operador','Cliente'],catalog:['Admin','Operador','Cliente'],reports:['Admin'],audit:['Admin','Auditor'],rabbit:['Admin'],notifications:['Admin','Cliente']};
+  const allowed={dashboard:['Admin','Operador','Cliente'],orders:['Admin','Operador','Cliente'],catalog:['Admin','Operador','Cliente'],reports:['Admin'],audit:['Admin','Auditor'],rabbit:['Admin'],kafka:['Admin'],notifications:['Admin','Cliente']};
   return (
     <div className="shell">
       <header className="header">

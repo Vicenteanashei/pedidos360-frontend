@@ -18,7 +18,7 @@ const STATUS_MESSAGES = {
   403: 'El token no tiene permiso para usar la API (falta scope o rol autorizado).',
 };
 
-export async function request(path, { method = 'GET', body } = {}) {
+export async function request(path, { method = 'GET', body, signal } = {}) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
@@ -31,7 +31,7 @@ export async function request(path, { method = 'GET', body } = {}) {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(15000),
+      signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000),
     });
   } catch {
     throw new Error(`No se pudo conectar con el backend (${API_URL}). ¿Está levantado?`);
