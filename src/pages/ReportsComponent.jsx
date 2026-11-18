@@ -24,6 +24,8 @@ export default function ReportsComponent() {
         <BarChart data={report.hourlySales || []} format={money}/></section>
       <section className="card"><h3>Ventas por día</h3><p>Fechas en {report.timeZone || 'America/Santiago'}.</p>
         <BarChart data={report.dailySales || []} format={money}/></section>
+      <section className="card"><h3>Lead time promedio por día de entrega</h3>
+        <BarChart data={report.dailyLeadTime || []} format={formatDuration}/></section>
       <section className="card"><h3>Productos más vendidos</h3><BarChart data={report.topProducts || []}/></section>
     </>}
   </div>;

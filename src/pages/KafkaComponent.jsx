@@ -2,6 +2,9 @@ import {useState} from 'react';
 import {request} from '../api/http';
 import {usePollingResource} from '../hooks/usePollingResource';
 
+const DAY_MS = 86400000;
+const configPath = name => '/api/kafka/topics/' + encodeURIComponent(name) + '/config';
+
 export default function KafkaComponent() {
   const topics = usePollingResource('/api/kafka/topics');
   const cluster = usePollingResource('/api/kafka/cluster');
@@ -18,14 +21,38 @@ export default function KafkaComponent() {
     catch (reason) { setError(reason.message); }
     finally { setBusy(false); }
   }
+  async function readConfig(row) {
+    const value = await request(configPath(row.name));
+    setTopic(row);
+    setConfig(value);
+    setChange({
+      partitions: row.partitions,
+      days: Number(value['retention.ms']) / DAY_MS,
+      cleanupPolicy: value['cleanup.policy'],
+    });
+  }
   async function inspect(row) {
-    setBusy(true); setError('');
-    try {
-      const value = await request('/api/kafka/topics/' + encodeURIComponent(row.name) + '/config');
-      setTopic(row); setConfig(value);
-      setChange({partitions: row.partitions, days: Number(value['retention.ms']) / 86400000, cleanupPolicy: value['cleanup.policy']});
-    } catch (reason) { setError(reason.message); }
+    setBusy(true); setError(''); setNotice('');
+    try { await readConfig(row); }
+    catch (reason) { setError(reason.message); }
     finally { setBusy(false); }
+  }
+  function updateConfig(event) {
+    event.preventDefault();
+    const partitions = Number(change.partitions);
+    const body = topic.protected ? {} : {partitions, cleanupPolicy: change.cleanupPolicy};
+    body.retentionMs = Math.round(Number(change.days) * DAY_MS);
+    action(async () => {
+      await request(configPath(topic.name), {method: 'PUT', body});
+      await readConfig({...topic, partitions});
+    }, 'Configuración actualizada.');
+  }
+  function resetConfig(property, label) {
+    if (!window.confirm(`Restablecer ${label} de ${topic.name} al valor del clúster?`)) return;
+    action(async () => {
+      await request(configPath(topic.name) + '/' + property, {method: 'DELETE'});
+      await readConfig(topic);
+    }, 'Configuración restablecida.');
   }
   async function inspectGroup(id) {
     setBusy(true); setError('');
@@ -53,25 +80,34 @@ export default function KafkaComponent() {
           <td>{row.inSyncReplicas.map(p => p.partition + ': ' + p.isr + '/' + p.replicas).join(', ')}</td>
           <td><button className="btn small" disabled={busy} onClick={() => inspect(row)}>Configuración</button>
             <button className="btn small" disabled={busy || row.protected} onClick={() => {
-              if (window.confirm('Eliminar ' + row.name + ' y sus mensajes retenidos?'))
-                action(() => request('/api/kafka/topics/' + encodeURIComponent(row.name), {method: 'DELETE'}), 'Tópico eliminado.');
+              if (window.confirm('Eliminar ' + row.name + ' y sus mensajes retenidos?')) {
+                action(async () => {
+                  await request('/api/kafka/topics/' + encodeURIComponent(row.name), {method: 'DELETE'});
+                  if (topic?.name === row.name) { setTopic(null); setConfig(null); }
+                }, 'Tópico eliminado.');
+              }
             }}>Eliminar</button></td></tr>)}</tbody></table></div>
     </section>
     {topic && config && <section className="card">
       <h3>Configuración: {topic.name}</h3>
       <p>Retención actual: {config['retention.ms']} ms. Mínimo de réplicas en sincronía: {config['min.insync.replicas']}.</p>
-      <form onSubmit={event => {event.preventDefault(); action(() => request('/api/kafka/topics/' + encodeURIComponent(topic.name) + '/config',
-        {method: 'PUT', body: {partitions: Number(change.partitions), retentionMs: Math.round(Number(change.days) * 86400000), cleanupPolicy: change.cleanupPolicy}}), 'Configuración actualizada. Vuelve a consultar el tópico para verificarla.');}}>
+      <form onSubmit={updateConfig}>
         <div className="row"><label>Particiones<input type="number" min={topic.partitions} max={48} required disabled={topic.protected} value={change.partitions} onChange={e => setChange({...change, partitions: e.target.value})}/></label>
-          <label>Retención en días<input type="number" min={topic.name === 'audit.timeline' ? 14 : topic.protected ? 7 : 1} max={90} required value={change.days} onChange={e => setChange({...change, days: e.target.value})}/></label>
+          <label>Retención en días<input type="number" min={topic.name === 'audit.timeline' ? 14 : topic.name === 'orders.events' ? 3 : topic.protected ? 7 : 1 / 24} max={90} step="any" required value={change.days} onChange={e => setChange({...change, days: e.target.value})}/></label>
           <label>Limpieza<select disabled={topic.protected} value={change.cleanupPolicy} onChange={e => setChange({...change, cleanupPolicy: e.target.value})}><option value="delete">Por retención</option><option value="compact">Compactar por clave</option><option value="compact,delete">Compactar y aplicar retención</option></select></label></div>
-        <button className="btn primary" disabled={busy}>Guardar configuración</button>
+        <div className="actions">
+          <button className="btn primary" disabled={busy}>Guardar configuración</button>
+          {!topic.protected && <>
+            <button className="btn" type="button" disabled={busy} onClick={() => resetConfig('retention.ms', 'la retención')}>Restablecer retención</button>
+            <button className="btn" type="button" disabled={busy} onClick={() => resetConfig('cleanup.policy', 'la política de limpieza')}>Restablecer limpieza</button>
+          </>}
+        </div>
       </form>
     </section>}
     <section className="card"><h3>Crear tópico de prueba</h3>
       <form onSubmit={event => {event.preventDefault(); action(() => request('/api/kafka/topics', {method: 'POST', body: {
         name: create.name, partitions: Number(create.partitions), replicationFactor: Number(create.replicationFactor),
-        retentionMs: Number(create.days) * 86400000, cleanupPolicy: create.cleanupPolicy}}), 'Tópico creado.');}}>
+        retentionMs: Number(create.days) * DAY_MS, cleanupPolicy: create.cleanupPolicy}}), 'Tópico creado.');}}>
         <div className="row"><label>Nombre<input name="name" required maxLength={96} value={create.name} onChange={updateCreate}/></label>
           <label>Particiones<input name="partitions" type="number" min={1} max={48} required value={create.partitions} onChange={updateCreate}/></label>
           <label>Réplicas<input name="replicationFactor" type="number" min={1} max={3} required value={create.replicationFactor} onChange={updateCreate}/></label>

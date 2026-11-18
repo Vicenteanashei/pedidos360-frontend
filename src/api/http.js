@@ -38,7 +38,15 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
   }
 
   if (res.status === 204) return null;
-  const data = await res.json().catch(() => null);
+  const text = await res.text();
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (res.ok) throw new Error(`La API devolvió una respuesta que no es JSON para ${path}.`);
+    }
+  }
   if (!res.ok) {
     throw new Error(data?.detail ?? STATUS_MESSAGES[res.status] ?? `Error ${res.status} llamando a ${path}`);
   }
